@@ -11,6 +11,8 @@
 
 #define STACK_SIZE 16
 
+#define KEYPAD_SIZE 16
+
 uint8_t memory[MEMORY_SIZE];
 uint8_t fontset[80] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -38,6 +40,13 @@ uint8_t sp;
 uint8_t delayTimer;
 uint8_t soundTimer;
 
+uint8_t keypad[KEYPAD_SIZE];
+
+// CPU registers
+uint16_t pc;  // program counter
+uint16_t I;  // index register
+uint8_t V[16];  // V0 to VF general purpose registers
+
 void initializeMemory(void);
 void clearDisplay(void);
 uint8_t drawSprite(uint8_t x, uint8_t y, uint8_t height, const uint8_t *sprite);
@@ -46,5 +55,10 @@ void pushStack(uint16_t value);
 uint16_t popStack(void);
 
 void updateTimers(void);
+void executeCycle(void);
+
+void setKeyDown(uint8_t key);
+void setKeyUp(uint8_t key);
+uint8_t isKeyPressed(uint8_t key);
 
 #endif

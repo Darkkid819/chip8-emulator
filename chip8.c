@@ -9,9 +9,15 @@ void initializeMemory(void) {
     for(int i = 0; i < 80; i++) {
         memory[0x050 + i] = fontset[i];
     }
+
     sp = 0;
     delayTimer = 0;
     soundTimer = 0;
+
+    pc = START_ADDRESS;
+    I = 0;
+    
+    memset(keypad, 0, sizeof(keypad));
 }
 
 void clearDisplay(void) {
@@ -67,4 +73,30 @@ void updateTimers(void) {
             // trigger beep
         }
     }
+}
+
+void executeCycle(void) {
+    uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
+    pc += 2;
+
+    // implement instruction set
+}
+
+void setKeyDown(uint8_t key) {
+    if (key < KEYPAD_SIZE) {
+        keypad[key] = 1;
+    }
+}
+
+void setKeyUp(uint8_t key) {
+    if (key < KEYPAD_SIZE) {
+        keypad[key] = 0;
+    }
+}
+
+uint8_t isKeyPressed(uint8_t key) {
+    if (key < KEYPAD_SIZE) {
+        return keypad[key];
+    }
+    return 0;
 }
