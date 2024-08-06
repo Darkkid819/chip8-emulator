@@ -35,11 +35,16 @@ uint8_t display[SCREEN_WIDTH][SCREEN_HEIGHT];
 uint16_t stack[STACK_SIZE];
 uint8_t sp;
 
-void initialize_memory(void);
-void clear_display(void);
-uint8_t draw_sprite(uint8_t x, uint8_t y, uint8_t height, const uint8_t *sprite);
+uint8_t delayTimer;
+uint8_t soundTimer;
 
-void push_stack(uint16_t value);
-uint16_t pop_stack(void);
+void initializeMemory(void);
+void clearDisplay(void);
+uint8_t drawSprite(uint8_t x, uint8_t y, uint8_t height, const uint8_t *sprite);
+
+void pushStack(uint16_t value);
+uint16_t popStack(void);
+
+void updateTimers(void);
 
 #endif
