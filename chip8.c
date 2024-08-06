@@ -1,5 +1,15 @@
 #include "chip8.h"
+#include <stdio.h>
 #include <string.h>
+
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+
+int main(int argc, char* argv[]) {
+    printf("Hello, World!\n");
+
+    return 0;
+}
 
 void initializeMemory(void) {
     for(int i = 0; i < MEMORY_SIZE; i++) {
@@ -118,7 +128,33 @@ void executeCycle(void) {
             I = opcode & 0x0FFF;
             break;
 
-        // TO DO: DXYN (display)
+        case 0xD000: {
+            // DXYN: display
+            uint8_t x = V[(opcode & 0x0F00) >> 8];
+            uint8_t y = V[(opcode & 0x00F0) >> 4];
+            uint8_t height = opcode & 0x000F;
+            uint8_t pixelErased = 0;
+
+            V[0xF] = 0;  // reset VF flag
+
+            for (int row = 0; row < height; row++) {
+                uint8_t spriteRow = memory[I + row];
+
+                for (int col = 0; col < 8; col++) {
+                    if ((spriteRow & (0x80 >> col)) != 0) {
+                        int xCoord = (x + col) % SCREEN_WIDTH;
+                        int yCoord = (y + row) % SCREEN_HEIGHT;
+
+                        if (display[xCoord][yCoord] == 1) {
+                            V[0xF] = 1;  // collision
+                        }
+
+                        display[xCoord][yCoord] ^= 1;
+                    }
+                }
+            }
+            break;
+        }
 
         default:
             printf("Unknown opcode: 0x%X\n", opcode);
