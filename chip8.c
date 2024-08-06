@@ -5,9 +5,91 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-int main(int argc, char* argv[]) {
-    printf("Hello, World!\n");
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 320
 
+SDL_Window* window = NULL;
+SDL_Renderer* renderer = NULL;
+SDL_Texture* texture = NULL;
+uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
+
+int initializeSDL(void) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    window = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    if (window == NULL) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL) {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (texture == NULL) {
+        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    return 1;
+}
+
+void renderDisplay(void) {
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            uint8_t pixel = display[x][y];
+            pixels[y * SCREEN_WIDTH + x] = pixel ? 0xFFFFFFFF : 0xFF000000;  // white for on, black for off
+        }
+    }
+
+    SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+}
+
+int handleEvents(void) {
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_QUIT) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void cleanupSDL(void) {
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+int main(int argc, char* argv[]) {
+    if (!initializeSDL()) {
+        return -1;
+    }
+
+    initializeMemory();
+
+    // load ROM here
+
+    int running = 1;
+    while (running) {
+        executeCycle();
+        updateTimers();
+        renderDisplay();
+        running = handleEvents();
+        SDL_Delay(1000 / 60);  // run at 60Hz
+    }
+
+    cleanupSDL();
     return 0;
 }
 
