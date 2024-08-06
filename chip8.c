@@ -79,7 +79,51 @@ void executeCycle(void) {
     uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
     pc += 2;
 
-    // implement instruction set
+    switch (opcode & 0xF000) {
+        case 0x0000:
+            switch (opcode & 0x00FF) {
+                case 0x00E0:  
+                    // 00E0: clear screen
+                    clearDisplay();
+                    break;
+
+                case 0x00EE:  
+                    // 00EE: return from a subroutine
+                    // TO DO
+                    break;
+                
+                default:
+                    printf("Unknown opcode: 0x%x\n", opcode);
+                    break;
+            }
+            break;
+        
+        case 0x1000:
+            // 1NNN: jump to address NNN
+            pc = opcode & 0x0FFF;
+            break;
+
+        case 0x6000:
+            // 6XNN: set VX to NN
+            V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+            break;
+
+        case 0x7000:
+            // 7XNN: add NN to VX (no carry)
+            V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+            break;
+
+        case 0xA000:
+            // ANNN: set I to NNN
+            I = opcode & 0x0FFF;
+            break;
+
+        // TO DO: DXYN (display)
+
+        default:
+            printf("Unknown opcode: 0x%X\n", opcode);
+            break;
+    }
 }
 
 void setKeyDown(uint8_t key) {
