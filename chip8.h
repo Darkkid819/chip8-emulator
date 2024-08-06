@@ -48,6 +48,8 @@ uint16_t I;  // index register
 uint8_t V[16];  // V0 to VF general purpose registers
 
 void initializeMemory(void);
+int loadROM(const char* filename);
+
 void clearDisplay(void);
 uint8_t drawSprite(uint8_t x, uint8_t y, uint8_t height, const uint8_t *sprite);
 

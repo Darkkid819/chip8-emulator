@@ -4,3 +4,4 @@ SDL2.dll
 .vscode
 *.exe
 *.o
+*.ch8

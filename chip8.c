@@ -72,13 +72,20 @@ void cleanupSDL(void) {
 }
 
 int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <ROM file>\n", argv[0]);
+        return -1;
+    }
+
     if (!initializeSDL()) {
         return -1;
     }
 
     initializeMemory();
 
-    // load ROM here
+    if (!loadROM(argv[1])) {
+        return -1;
+    }
 
     int running = 1;
     while (running) {
@@ -86,12 +93,13 @@ int main(int argc, char* argv[]) {
         updateTimers();
         renderDisplay();
         running = handleEvents();
-        SDL_Delay(1000 / 60);  // run at 60Hz
+        SDL_Delay(1000 / 60);  // Run at 60Hz
     }
 
     cleanupSDL();
     return 0;
 }
+
 
 void initializeMemory(void) {
     for(int i = 0; i < MEMORY_SIZE; i++) {
@@ -110,6 +118,20 @@ void initializeMemory(void) {
     I = 0;
     
     memset(keypad, 0, sizeof(keypad));
+}
+
+int loadROM(const char* filename) {
+    FILE* rom = fopen(filename, "rb");
+    if (rom == NULL) {
+        printf("Failed to open ROM: %s\n", filename);
+        return 0;
+    }
+
+    // read the ROM contents into memory starting at 0x200
+    fread(&memory[START_ADDRESS], sizeof(uint8_t), MEMORY_SIZE - START_ADDRESS, rom);
+
+    fclose(rom);
+    return 1;
 }
 
 void clearDisplay(void) {
