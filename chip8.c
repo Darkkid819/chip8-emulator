@@ -1,5 +1,7 @@
 #include "chip8.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define SDL_MAIN_HANDLED
@@ -342,6 +344,15 @@ void executeCycle(void) {
             // ANNN: set I to NNN
             I = opcode & 0x0FFF;
             break;
+
+        case 0xB000:
+            // BNNN: jump to address NNN + V0
+            pc = (opcode * 0x0FFF) + V[0];
+            break;
+
+        case 0xC000:
+            // CXNN: set VX to a random number ANDed with NN
+            V[(opcode & 0x0F00) >> 8] = (rand() % 256) & (opcode & 0x00FF);
 
         case 0xD000: {
             // DXYN: display
