@@ -412,6 +412,25 @@ void executeCycle(void) {
                     V[(opcode & 0x0F00) >> 8] = delayTimer;
                     break;
 
+                case 0x000A: {
+                    // FX0A: wait for a key press and store it in VX
+                    uint8_t keyPressed = 0;
+
+                    for (uint8_t i = 0; i < KEYPAD_SIZE; i++) {
+                        if (isKeyPressed(i)) {
+                            V[(opcode & 0x0F00) >> 8] = i;
+                            keyPressed = 1;
+                            break;
+                        }
+                    }
+
+                    // retry
+                    if (!keyPressed) {
+                        pc -= 2;
+                    }
+                    break;
+                }
+
                 case 0x0015:
                     // FX15: set the delay timer to the value in VX
                     delayTimer = V[(opcode & 0x0F00) >> 8];
