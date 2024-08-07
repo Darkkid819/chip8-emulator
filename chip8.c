@@ -465,6 +465,26 @@ void executeCycle(void) {
                     break;
                 }
 
+                case 0x0055: {
+                    // FX55: store V0 to VX in memory starting at address I
+                    uint8_t x = (opcode & 0x0F00) >> 8;
+                    for (uint8_t i = 0; i <= x; i++) {
+                        memory[I + i] = V[i];
+                    }
+                    // I is unchanged in modern CHIP-8 interpreters
+                    break;
+                }
+
+                case 0x0065: {
+                    // FX65: load V0 to VX from memory starting at address I
+                    uint8_t x = (opcode & 0x0F00) >> 8;
+                    for (uint8_t i = 0; i <= x; i++) {
+                        V[i] = memory[I + i];
+                    }
+                    // I is unchanged in modern CHIP-8 interpreters
+                    break;
+                }
+
                 default:
                     printf("Unknown opcode: 0x%x\n", opcode);
                     break;
