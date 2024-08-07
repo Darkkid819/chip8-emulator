@@ -405,6 +405,29 @@ void executeCycle(void) {
             }
             break;
 
+        case 0xF000:
+            switch (opcode & 0x00FF) {
+                case 0x0007:
+                    // FX07: set VX to the current value of the delay timer
+                    V[(opcode & 0x0F00) >> 8] = delayTimer;
+                    break;
+
+                case 0x0015:
+                    // FX15: set the delay timer to the value in VX
+                    delayTimer = V[(opcode & 0x0F00) >> 8];
+                    break;
+
+                case 0x0018:
+                    // FX18: set the sound timer to the value in VX
+                    soundTimer = V[(opcode & 0x0F00) >> 8];
+                    break;
+
+                default:
+                    printf("Unknown opcode: 0x%x\n", opcode);
+                    break;
+            }
+            break;
+
         default:
             printf("Unknown opcode: 0x%X\n", opcode);
             break;
