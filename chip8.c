@@ -422,6 +422,16 @@ void executeCycle(void) {
                     soundTimer = V[(opcode & 0x0F00) >> 8];
                     break;
 
+                case 0x001E:
+                    // FX1E: add VX to I, set VF to 1 if theres overflow (I > 0xFFF)
+                    if (I + V[(opcode & 0x0F00) >> 8] > 0xFFF) {
+                        V[0xF] = 1;
+                    } else {
+                        V[0xF] = 0;
+                    }
+                    I += V[(opcode & 0x0F00) >> 8];
+                    break;
+
                 default:
                     printf("Unknown opcode: 0x%x\n", opcode);
                     break;
