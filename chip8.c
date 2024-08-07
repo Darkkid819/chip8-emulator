@@ -8,6 +8,8 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 320
 
+// #define DEBUG
+
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 SDL_Texture* texture = NULL;
@@ -191,6 +193,11 @@ void updateTimers(void) {
 
 void executeCycle(void) {
     uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
+
+    #ifdef DEBUG
+    printf("Executing opcode: 0x%04X at PC: 0x%04X\n", opcode, pc);
+    #endif
+
     pc += 2;
 
     switch (opcode & 0xF000) {
@@ -203,7 +210,7 @@ void executeCycle(void) {
 
                 case 0x00EE:  
                     // 00EE: return from a subroutine
-                    // TO DO
+                    pc = popStack();
                     break;
                 
                 default:
@@ -214,6 +221,12 @@ void executeCycle(void) {
         
         case 0x1000:
             // 1NNN: jump to address NNN
+            pc = opcode & 0x0FFF;
+            break;
+
+        case 0x2000:
+            // 2NNN: call subroutine at NNN
+            pushStack(pc);
             pc = opcode & 0x0FFF;
             break;
 
