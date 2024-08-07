@@ -230,6 +230,27 @@ void executeCycle(void) {
             pc = opcode & 0x0FFF;
             break;
 
+        case 0x3000:
+            // 3XNN: skip the next instruction if VX == NN
+            if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
+                pc += 2;
+            } 
+            break;
+
+        case 0x4000:
+            // 4XNN: skip the next instruction if VX != NN
+            if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
+                pc += 2;
+            } 
+            break;
+
+        case 0x5000:
+            // 5XY0: skip the next instruction if VX == VY
+            if (V[(opcode & 0x00F0) >> 4] == V[(opcode & 0x0F00) >> 8]) {
+                pc += 2;
+            }
+            break;
+
         case 0x6000:
             // 6XNN: set VX to NN
             V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
@@ -238,6 +259,83 @@ void executeCycle(void) {
         case 0x7000:
             // 7XNN: add NN to VX (no carry)
             V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+            break;
+
+        case 0x8000:
+            switch (opcode & 0x000F) {
+                case 0x0000:
+                    // 8XY0: set VX = VY
+                    V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
+                    break;
+
+                case 0x0001:
+                    // 8xY1: set VX = VX OR VY
+                    V[(opcode & 0x0F00) >> 8] |= V[(opcode & 0x00F0) >> 4];
+                    break;
+
+                case 0x0002:
+                    // 8XY2: set VX = VX AND VY
+                    V[(opcode & 0x0F00) >> 8] &= V[(opcode & 0x00F0) >> 4];
+                    break;
+
+                case 0x0003:
+                    // 8XY3: set VX = VX XOR VY
+                    V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F0) >> 4];
+                    break;
+
+                case 0x0004:
+                    // 8XY4: add VY to VX, set VF to 1 if theres a carry, 0 otherwise
+                    if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) {
+                        V[0xF] = 1;
+                    } else {
+                        V[0xF] = 0;
+                    }
+                    V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
+                    break;
+
+                case 0x0005:
+                    // 8XY5: subtract VY from VX. set VF to 0 if theres a borrow, 1 otherwise
+                    if (V[(opcode & 0x0F00) >> 8] >= V[(opcode & 0x00F0) >> 4]) {
+                        V[0xF] = 1;
+                    } else {
+                        V[0xF] = 0;
+                    }
+                    V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
+                    break;
+
+                case 0x0007:
+                    // 8XY7: set VX = VY - VX. set VF to 0 if theres a borrow, 1 otherwise
+                    if (V[(opcode & 0x00F0) >> 4] >= V[(opcode & 0x0F00) >> 8]) {
+                        V[0xF] = 1;
+                    } else {
+                        V[0xF] = 0;
+                    }
+                    V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8];
+                    break;
+
+                case 0x0006:
+                    // 8XY6: shift VX right by one. VF is set to the value of LSB of VX before shift
+                    V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
+                    V[(opcode & 0x0F00) >> 8] >>= 1;
+                    break;
+
+                case 0x000E:
+                    // 8XYE: shift VX left by one. VF is set to the value of MSB of VX before shift
+                    V[0xF] = V[(opcode & 0x0F00) >> 8] >> 7;
+                    V[(opcode & 0x0F00) >> 8] <<= 1;
+                    break;
+
+                default:
+                    printf("Unknown opcode: 0x%x\n", opcode);
+                    break;
+            }
+            break;
+
+        case 0x9000:
+            // 9XY0: skip the next instruction if VX != VY
+            if (V[(opcode & 0x00F0) >> 4] != V[(opcode & 0x0F00) >> 8]) {
+                pc += 2;
+            }
             break;
 
         case 0xA000:
