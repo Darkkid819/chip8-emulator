@@ -456,6 +456,15 @@ void executeCycle(void) {
                     I = 0x050 + (V[(opcode & 0x0F00) >> 8] * 5); 
                     break;
 
+                case 0x0033: {
+                    // FX33: store BCD representation of VX in memory locations I, I+1, and I+2
+                    uint8_t value = V[(opcode & 0x0F00) >> 8];
+                    memory[I] = value / 100;  // hundreds digit
+                    memory[I + 1] = (value / 10) % 10;  // tens digit
+                    memory[I + 2] = value % 10;  // ones digit
+                    break;
+                }
+
                 default:
                     printf("Unknown opcode: 0x%x\n", opcode);
                     break;
