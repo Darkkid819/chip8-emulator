@@ -353,6 +353,7 @@ void executeCycle(void) {
         case 0xC000:
             // CXNN: set VX to a random number ANDed with NN
             V[(opcode & 0x0F00) >> 8] = (rand() % 256) & (opcode & 0x00FF);
+            break;
 
         case 0xD000: {
             // DXYN: display
@@ -381,6 +382,28 @@ void executeCycle(void) {
             }
             break;
         }
+
+        case 0xE000:
+            switch (opcode & 0x00FF) {
+                case 0x009E:
+                    // EX9E: skip the next instruction if the key with the value in VX is pressed
+                    if (isKeyPressed(V[(opcode & 0x0F00) >> 8])) {
+                        pc += 2;
+                    }
+                    break;
+
+                case 0x00A1:
+                    // EXA1: skip the next instruction if the key with the value in VX is not pressed
+                    if (!isKeyPressed(V[(opcode & 0x0F00) >> 8])) {
+                        pc += 2;
+                    }
+                    break;
+
+                default:
+                    printf("Unknown opcode: 0x%x\n", opcode);
+                    break;
+            }
+            break;
 
         default:
             printf("Unknown opcode: 0x%X\n", opcode);
