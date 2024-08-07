@@ -451,6 +451,11 @@ void executeCycle(void) {
                     I += V[(opcode & 0x0F00) >> 8];
                     break;
 
+                case 0x0029:
+                    // FX29: set I to the memory address of the sprite data corresponding to the hex digit in VX
+                    I = 0x050 + (V[(opcode & 0x0F00) >> 8] * 5); 
+                    break;
+
                 default:
                     printf("Unknown opcode: 0x%x\n", opcode);
                     break;
