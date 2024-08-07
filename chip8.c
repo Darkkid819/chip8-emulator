@@ -15,11 +15,62 @@
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 SDL_Texture* texture = NULL;
+SDL_AudioDeviceID audioDevice = 0;
+SDL_AudioSpec want, have;
 uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
+int audioPlaying = 0;
+
+void audioCallback(void* userdata, uint8_t* stream, int len) {
+    static int phase = 0;
+    int frequency = 440;
+    int amplitude = 32767;
+
+    for (int i = 0; i < len; i += 2) {
+        int16_t sample = (phase / (44100 / frequency)) % 2 == 0 ? amplitude : -amplitude;
+        stream[i] = sample & 0xFF;
+        stream[i + 1] = (sample >> 8) & 0xFF;
+        phase++;
+    }
+}
+
+int initializeAudio(void) {
+    SDL_memset(&want, 0, sizeof(want));
+    want.freq = 44100;
+    want.format = AUDIO_S16SYS;
+    want.channels = 1;
+    want.samples = 4096;
+    want.callback = audioCallback;
+
+    audioDevice = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+    if (audioDevice == 0) {
+        printf("Failed to open audio: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    return 1;
+}
+
+void playAudio() {
+    if (!audioPlaying) {
+        SDL_PauseAudioDevice(audioDevice, 0);
+        audioPlaying = 1;
+    }
+}
+
+void stopAudio() {
+    if (audioPlaying) {
+        SDL_PauseAudioDevice(audioDevice, 1);
+        audioPlaying = 0;
+    }
+}
 
 int initializeSDL(void) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    if (!initializeAudio()) {
         return 0;
     }
 
@@ -43,6 +94,7 @@ int initializeSDL(void) {
 
     return 1;
 }
+
 
 void renderDisplay(void) {
     for (int y = 0; y < SCREEN_HEIGHT; y++) {
@@ -102,6 +154,7 @@ int handleEvents(void) {
 
 
 void cleanupSDL(void) {
+    SDL_CloseAudioDevice(audioDevice);
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -220,8 +273,10 @@ void updateTimers(void) {
     if (soundTimer > 0) {
         soundTimer--;
 
-        if (soundTimer == 0) {
-            // trigger beep
+        if (soundTimer > 0) {
+            playAudio(); 
+        } else {
+            stopAudio(); 
         }
     }
 }
